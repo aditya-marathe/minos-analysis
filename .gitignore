@@ -96,6 +96,9 @@ cython_debug/
 # VSCode settings
 .vscode/
 
+# Figures
+figures/
+
 # Temporary files
 temp.py
 temp.ipynb
