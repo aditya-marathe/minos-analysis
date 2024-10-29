@@ -87,6 +87,9 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# PyLint
+.pylintrc
+
 # ROOT files
 *.root
 
@@ -98,6 +101,9 @@ cython_debug/
 
 # Figures
 figures/
+
+# Tests
+tests/
 
 # Temporary files
 temp.py
