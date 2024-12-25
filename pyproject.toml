@@ -3,17 +3,25 @@ name = "minos-analysis"
 version = "0.1.0"
 description = "Code used for the re-analysis of MINOS/MINOS+ experiment at Fermilab (or FNAL)."
 authors = ["Aditya Marathe <72881014+aditya-marathe@users.noreply.github.com>"]
-license = "GNU General Public License Version 3"
+license = "GPL-3.0-only"
 readme = "README.md"
 package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.8"
-python-dotenv = "*"
 numpy = "*"
 pandas = "*"
-matplotlib = "*"
 uproot = "*"
+awkward = "*"
+awkward-pandas = "*"
+matplotlib = "*"
+
+# Local dependencies
+oscana = { path = "../oscana", develop = true }
+
+[tool.black]
+# Settings for the Black code formatter
+line-length = 80
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
