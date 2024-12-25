@@ -106,5 +106,5 @@ figures/
 tests/
 
 # Temporary files
-temp.py
-temp.ipynb
+temp*.py
+temp*.ipynb
