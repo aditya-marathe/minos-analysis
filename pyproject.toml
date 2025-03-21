@@ -8,16 +8,21 @@ readme = "README.md"
 package-mode = false
 
 [tool.poetry.dependencies]
-python = ">=3.8"
-numpy = "*"
-pandas = "*"
-uproot = "*"
-awkward = "*"
-awkward-pandas = "*"
-matplotlib = "*"
+python = ">=3.10,<3.12"
+numpy = "*"  # Left floating because of TF requirements
+pandas = "^2.2.3"
+uproot = "^5.5.1"
+awkward = "^2.7.3"
+awkward-pandas = "^2023.8.0"
+matplotlib = "^3.10.0"
+scikit-learn = "*"
+tensorflow = "*"
+torch = "*"
+torchvision = "*"
 
 # Local dependencies
 oscana = { path = "../oscana", develop = true }
+keras = "^3.9.0"
 
 [tool.black]
 # Settings for the Black code formatter
@@ -25,6 +30,7 @@ line-length = 80
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
+ipympl = "^0.9.6"
 
 [build-system]
 requires = ["poetry-core"]
