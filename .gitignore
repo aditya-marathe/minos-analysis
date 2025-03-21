@@ -96,6 +96,9 @@ cython_debug/
 # HDF5 files
 *.h5
 
+# Logs
+logs/
+
 # VSCode settings
 .vscode/
 
