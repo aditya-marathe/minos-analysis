@@ -354,7 +354,7 @@ def _train_epoch(
         )
 
         # (5) Update with the loss and metrics averaged over the batch size.
-        this_batch_info = {LOSS_LABEL: current_loss / ((i + 1) * batch_size)}
+        this_batch_info = {LOSS_LABEL: current_loss / batch_size}
         this_batch_info.update(_compute_metrics(metrics=metrics))
         progressbar.update_progress(info=this_batch_info)
 
@@ -776,9 +776,29 @@ class TorchModel(torch.nn.Module, ABC):
         torch.save(self.state_dict(), path)
 
     @property
+    def optimiser(self) -> torch.optim.Optimizer:
+        """\
+        The optimiser used by the model.
+        """
+        if not self._optimiser:
+            raise ValueError("Model is not compiled yet!")
+
+        return self._optimiser
+
+    @property
+    def loss(self) -> torch.nn.Module:
+        """\
+        The loss function used by the model.
+        """
+        if not self._loss:
+            raise ValueError("Model is not compiled yet!")
+
+        return self._loss
+
+    @property
     def last_training_history(self) -> TorchHistory | None:
         """\
-        Returns the history of the last training run.
+        The history of the last training run.
         """
         return self._previous_run_history
 
