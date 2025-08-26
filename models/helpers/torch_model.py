@@ -197,10 +197,10 @@ def _update_compute_metrics(
     dict[str, float]
         A dictionary containing the total metric names and their values.
     """
-    for metric in metrics:
-        if activation is not None:
-            batch_output = activation(batch_output)
+    if activation is not None:
+        batch_output = activation(batch_output)
 
+    for metric in metrics:
         metric.update(batch_output, batch_labels)
 
     return _compute_metrics(metrics=metrics)
@@ -317,7 +317,7 @@ def _train_epoch(
     """
     model.train()
 
-    num_batches = len(train_data) * batch_size
+    num_batches = len(train_data)
 
     _reset_metrics(metrics=metrics)
 
@@ -417,7 +417,7 @@ def _validate_epoch(
 
     _reset_metrics(metrics=metrics)
 
-    num_batches = len(validation_data) * batch_size
+    num_batches = len(validation_data)
 
     # (1) Set up a counter for the total metrics.
     running_loss = 0.0
@@ -506,6 +506,25 @@ class TorchModel(torch.nn.Module, ABC):
         Sets the device for the model.
         """
         self._device = device
+
+    def apply_output_activation(self, output: torch.Tensor) -> torch.Tensor:
+        """\
+        Applies the output activation function to the model output.
+
+        Parameters
+        ----------
+        output : torch.Tensor
+            The model output.
+
+        Returns
+        -------
+        torch.Tensor
+            The activated output.
+        """
+        if self._output_activation is not None:
+            output = self._output_activation(output)
+
+        return output
 
     def compile(
         self,
@@ -623,7 +642,7 @@ class TorchModel(torch.nn.Module, ABC):
         self._is_training = True
 
         # (2.2) Epoch Loop
-        for epoch in range(initial_epoch, epochs + 1):
+        for epoch in range(initial_epoch, initial_epoch + epochs):
             if not self._is_training:
                 break
 
@@ -682,6 +701,9 @@ class TorchModel(torch.nn.Module, ABC):
                     epoch=epoch,
                     info=this_epoch_info,
                 )
+
+                if not self._is_training:
+                    break
 
         self.eval()
         history.end_timer()
@@ -751,6 +773,48 @@ class TorchModel(torch.nn.Module, ABC):
         """
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
+    def _get_learning_rate(self) -> list[float]:
+        """\
+        Gets the current learning rate(s) for the optimiser.
+
+        Returns
+        -------
+        list[float]
+            The current learning rate(s) for the optimiser.
+        """
+        learning_rates = []
+
+        for param_group in self.optimiser.param_groups:
+            learning_rates.append(param_group["lr"])
+
+        return learning_rates
+
+    def _set_learning_rate(self, value: float | list[float]) -> None:
+        """\
+        Sets the learning rate for the optimiser.
+
+        Parameters
+        ----------
+        value : float | list[float]
+            The learning rate(s) to set.
+        """
+        if not self._optimiser:
+            raise ValueError("Model is not compiled yet!")
+
+        if isinstance(value, list):
+            if len(value) != len(self.optimiser.param_groups):
+                raise ValueError(
+                    "The given list of learning rates must match number of "
+                    "parameter groups!"
+                )
+
+            for param_group, lr in zip(self.optimiser.param_groups, value):
+                param_group["lr"] = lr
+
+        else:
+            for param_group in self.optimiser.param_groups:
+                param_group["lr"] = value
+
     def save(self, path: str | Path) -> None:
         """\
         Saves the model to the specified path.
@@ -765,7 +829,7 @@ class TorchModel(torch.nn.Module, ABC):
         if path.is_dir():
             path /= f"{self.__class__.__name__.lower()}.pt"
 
-        if (path.suffix != ".pt") or (path.suffix != ".pth"):
+        if path.suffix not in (".pt", ".pth"):
             # Note: Not that it matters but it is good to stick to the
             #       conventions.
             raise ValueError(
